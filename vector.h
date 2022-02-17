@@ -2,10 +2,10 @@
 #define _VECTOR_
 
 #include <iostream>
-#include <memory>
 #include "reverse_iterator.h"
 #include "allocator.h"
 #include "memory.h"
+#include "utility.h"
 
 namespace hui{
 	
@@ -45,12 +45,23 @@ namespace hui{
 		void reserve(size_type sz);
 		void clear();
 
-		value_type& at(int i) const {if(i > size || i < 0) return buffer[0]; return buffer[i]; }
+		value_type& at(int i) const {if(i >= size || i < 0) throw std::out_of_range("at doesnt work\n"); return buffer[i]; }
 		int get_size() const { return size; }
+
+		iterator begin() const {
+			return buffer;
+		}	
+
+		iterator end() const {
+			return buffer + size;
+		}
+
+		//other trivial stuff
 	};
 
 	template<typename T, typename Allocator>
 	vector<T, Allocator>::~vector(){
+		clear();
 		alloc.deallocate(buffer, size);
 	}
 
@@ -91,6 +102,7 @@ namespace hui{
 			cap_in = 1;
 		
 		pointer tmp = alloc.allocate(cap_in);
+		//pointer tmp = new T[cap_in];
 		hui::uninitialized_move_n(buffer, size, tmp);
 		clear();
 		alloc.deallocate(buffer, size);
@@ -116,7 +128,7 @@ namespace hui{
 		if(size >= cap)
 			reserve(2 * cap);
 		//buffer[size++] = new T(std::forward(val)...);
-		alloc.construct(buffer + size, std::forward<Args>(val)...);
+		alloc.construct(buffer + size, hui::forward<Args>(val)...);
 		size++;
 	}
 };

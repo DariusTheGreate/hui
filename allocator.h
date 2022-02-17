@@ -36,11 +36,11 @@ namespace hui{
 		pointer allocate(size_type n){
 			if(n > this->max_size())
 				return nullptr;
-			return reinterpret_cast<pointer>(malloc(n * sizeof(value_type)));
+			return reinterpret_cast<pointer>(::operator new(n * sizeof(value_type)));
 		}
 
 		void deallocate(pointer ptr, size_type n){
-			::operator delete ((ptr));
+			::operator delete(ptr);
 		}
 
 		void construct(pointer p, const_reference val){
@@ -48,7 +48,7 @@ namespace hui{
 		}
 
 		template<typename... Args>
-		void construct(pointer p, Args... val) {
+		void construct(pointer p, Args&&... val) {
 			::new (reinterpret_cast<void*>(p)) value_type(std::forward<Args>(val)...);
 		}
 

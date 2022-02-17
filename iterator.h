@@ -1,5 +1,4 @@
-#ifndef _ITERATOR_
-#define _ITERATOR_
+#pragma once
 
 //#include "my_traits.h"
 namespace hui{
@@ -26,5 +25,3 @@ namespace hui{
 	//	static yes_type test(typename T::wrapped_iterator_type*, typename enable_if<is_class<T>::value>::type);
 	//};
 };
-#endif
-

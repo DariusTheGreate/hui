@@ -1,6 +1,7 @@
 //need to add is_class(), yes_type, no_type
 #ifndef _MY_TRAITS_
-#define _MY_TRAITS
+#define _MY_TRAITS_
+
 namespace hui{
 
 	template<typename T>
