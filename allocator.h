@@ -12,8 +12,8 @@ namespace hui{
 		using pointer = T*;
 		using reference = T&;
 		using r_reference = T&&;
-		using const_pointer = const pointer;
-		using const_reference = const reference;
+		using const_pointer = const T*;
+		using const_reference = const T&;
 		using size_type = size_t;
 		using difference_type = ptrdiff_t;
 
@@ -36,18 +36,23 @@ namespace hui{
 		pointer allocate(size_type n){
 			if(n > this->max_size())
 				return nullptr;
-			return reinterpret_cast<pointer>(::operator new(n * sizeof(value_type)));
+			return reinterpret_cast<pointer>(malloc(n * sizeof(value_type)));
 		}
 
 		void deallocate(pointer ptr, size_type n){
-			::operator delete(ptr);
+			::operator delete ((ptr));
 		}
 
 		void construct(pointer p, const_reference val){
 			::new (reinterpret_cast<void*>(p)) value_type(val);
 		}
 
-		void destroy(pointer* p){
+		template<typename... Args>
+		void construct(pointer p, Args... val) {
+			::new (reinterpret_cast<void*>(p)) value_type(std::forward<Args>(val)...);
+		}
+
+		void destroy(pointer p){
 			p->~value_type();
 		}
 
