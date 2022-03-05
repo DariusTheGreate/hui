@@ -1,4 +1,4 @@
-//need to add is_class(), yes_type, no_type
+//need to add is_class(), is_base_of(), is_pod(), is_scalar(), is_enum(), etc..
 #ifndef _MY_TRAITS_
 #define _MY_TRAITS_
 
@@ -42,7 +42,7 @@ namespace hui{
 	
 	template<typename T>
 	const bool is_const_v = is_const<T>::val;
-	
+    
 	template<bool B>
 	struct enable_if{
 	};
@@ -54,6 +54,20 @@ namespace hui{
 	
 	template<bool B>
 	using enable_if_t = typename enable_if<B>::type;
+
+    template<typename T, T val>
+    struct integral_constant{
+        static constexpr T value = val;
+        using value_type = T;
+        using type = integral_constant;
+        constexpr operator value_type() const noexcept { return value; }
+        constexpr value_type operator() () const noexcept {return value; }
+    };
+    
+    struct yes_type : integral_constant<bool, true> {};
+    struct no_type : integral_constant<bool, false> {};
+    
+
 };
 #endif
 
