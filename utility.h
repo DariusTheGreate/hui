@@ -13,6 +13,13 @@ namespace hui{
 	T&& forward(hui::remove_reference_t<T>& x) {
 		return static_cast<T&&>(x);
 	}
+
+    template<typename T>
+    void swap(T& v1, T& v2){
+        T v3 = hui::move(v1);
+        v1 = hui::move(v2);
+        v2 = hui::move(v3);
+    }
 }
 
 #endif

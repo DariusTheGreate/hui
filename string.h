@@ -2,6 +2,7 @@
 #define _STRING_
 #include "allocator.h"
 #include "memory.h"
+#include "utility.h"
 #include <iostream>
 
 #include <string>
@@ -81,7 +82,7 @@ namespace hui{
     
         basic_string(char* data) {
             while(data[m_str_len++] != '\0'){}
-            std::cout << m_str_len << "\n";
+            //std::cout << m_str_len << "\n";
  
             if(m_str_len < get_buffer_sso_size() + 1){
                 m_p = get_ptr_to_sso_buff();
@@ -111,13 +112,42 @@ namespace hui{
             
         }
 
+        basic_string(basic_string&& str) noexcept : m_str_len(str.m_str_len) {           
+            if(str.m_str_len < get_buffer_sso_size()){
+                m_p = get_ptr_to_sso_buff();
+                hui::uninitialized_copy_n(str.m_p, m_str_len, m_p);
+            }
+            else{
+                m_p = str.m_p;
+            }
+
+            str.m_p = nullptr;
+            str.m_str_len = 0; 
+        }
+
+        basic_string& operator =(basic_string str){
+            if(this == &str)
+                return *this;
+            swap_me(str);
+            return *this;
+        }
+
         ~basic_string(){
             if(m_str_len > get_buffer_sso_size() + 1)
                 alloc_traits::deallocate(alloc, m_p, m_str_len);
         }
 
+        void swap_me(basic_string& str){
+            hui::swap(m_p, str.m_p);
+            hui::swap(m_str_len, str.m_str_len);
+        }
+
         pointer c_str() const noexcept{
             return m_p;
+        }
+
+        size_type size() const noexcept {
+            return m_str_len;
         }
 
     private:

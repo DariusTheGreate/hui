@@ -8,13 +8,13 @@
 template<typename T, typename = hui::enable_if_t<hui::is_same_v<T, int>>>
 void test_vector_and_sfinae(const T&) 
 {
-	hui::vector<std::string> v;
+	hui::vector<hui::string> v;
 	for (int i = 0; i < 50000; ++i) {
-		v.emplace_back("s");
+		v.emplace_back((char*)"lol");
 	}
 
 	for (auto& i : v)
-		std::cout << i;
+		std::cout << i.c_str();
 }
 
 void test_vector_and_sfinae(...) {
@@ -38,20 +38,30 @@ void test_string(){
     hui::string str;
     std::cout << sizeof(str) << "\n";//32
     
-    hui::string str2("asdsad");
+    hui::string str2((char*)"asdsad");
     std::cout << str2.c_str() << "\n";    
     
-    hui::string str3("assssssssssssssssssssssdasdsadsadasdasdsadasdsadasdas\n");
+    hui::string str3((char*)"assssssssssssssssssssssdasdsadsadasdasdsadasdsadasdas\n");
     std::cout << str3.c_str();
     
     hui::string str4 = str3;//copy constr
     std::cout << str4.c_str();
     std::cout << str3.c_str();
+    str4 = str3;
+    std::cout << str4.c_str();
+    std::cout << str3.c_str();
+    
+    hui::string str5((char*)"moved strasssssssssssssssssssssssssss");
+    std::cout << "1 "  << str5.c_str() << "|\n";
+    hui::string str6(hui::move(str5));
+    std::cout << "2 " << str6.c_str() << "|\n";
+    std::cout << "3 " << str5.size();
 }
 
 int main()
 {
-    test_string();
-    test_exceptions();
-    test_vector_and_sfinae('s');
+    //test_string();
+    //test_exceptions();
+    test_vector_and_sfinae(9);
+    std::cout << "exit\n";
 }
