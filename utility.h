@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _UTILITY_
+#define _UTILITY_
 
 #include "my_traits.h"
 
@@ -13,3 +14,6 @@ namespace hui{
 		return static_cast<T&&>(x);
 	}
 }
+
+#endif
+

@@ -1,9 +1,10 @@
-#pragma once
+#ifndef _ITERATOR_
+#define _ITERATOR_
 
-//#include "my_traits.h"
+#include "huidef.h"
+
 namespace hui{
-	template<typename Category, typename T, typename Distance = ptrdiff_t, 
-		typename Pointer = T*, typename Reference = T&>
+	template<typename Category, typename T, typename Distance = ptrdiff_t, 	typename Pointer = T*, typename Reference = T&>
 	class Iterator{
 		using iterator_category = Category;
 		using value_type = T;
@@ -25,3 +26,6 @@ namespace hui{
 	//	static yes_type test(typename T::wrapped_iterator_type*, typename enable_if<is_class<T>::value>::type);
 	//};
 };
+
+#endif
+

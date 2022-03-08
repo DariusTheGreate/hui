@@ -1,7 +1,8 @@
 #ifndef _ALLOCATOR_
 #define _ALLOCATOR_
 
-#include <limits>
+#include <limits>//make own
+#include "utility.h"
 
 namespace hui{
 
@@ -14,8 +15,8 @@ namespace hui{
 		using r_reference = T&&;
 		using const_pointer = const T*;
 		using const_reference = const T&;
-		using size_type = size_t;
-		using difference_type = ptrdiff_t;
+		using size_type = std::size_t;
+		using difference_type = std::ptrdiff_t;
 
 		//departed in c++20
 		template<class Type>
@@ -49,7 +50,7 @@ namespace hui{
 
 		template<typename... Args>
 		void construct(pointer p, Args&&... val) {
-			::new (reinterpret_cast<void*>(p)) value_type(std::forward<Args>(val)...);
+			::new (reinterpret_cast<void*>(p)) value_type(hui::forward<Args>(val)...);
 		}
 
 		void destroy(pointer p){

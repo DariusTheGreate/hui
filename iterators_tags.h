@@ -1,5 +1,6 @@
 #ifndef _ITERATOR_TAGS_
 #define _ITERATOR_TAGS_
+
 namespace hui{
 
 	struct input_iterator_tag {};
