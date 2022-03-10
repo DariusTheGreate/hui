@@ -20,6 +20,15 @@ namespace hui{
             return "standart hui::exception problem\n";
         }; 
     };
+
+    class bad_alloc : public exception {
+    public:
+        bad_alloc() throw() {}
+        virtual ~bad_alloc() throw() {};
+        virtual const char* what() const throw() {
+            return "bad cast";
+        }
+    };
 };
 #endif
 

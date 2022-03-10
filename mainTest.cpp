@@ -3,7 +3,7 @@
 #include "allocator.h"
 #include "exception.h"
 #include "string.h"
-
+#include "shared_ptr.h"
 
 template<typename T, typename = hui::enable_if_t<hui::is_same_v<T, int>>>
 void test_vector_and_sfinae(const T&) 
@@ -58,10 +58,20 @@ void test_string(){
     std::cout << "3 " << str5.size();
 }
 
+static void intDeleter(int* ptr){
+    delete ptr;
+}
+
+void test_shred_ptr(){
+    int data = 666;
+    hui::shared_ptr<int> sp(&data, hui::Allocator<int>(), intDeleter); 
+}
+
 int main()
 {
+    test_shred_ptr();
     //test_string();
     //test_exceptions();
-    test_vector_and_sfinae(9);
+    //test_vector_and_sfinae(9);
     std::cout << "exit\n";
 }

@@ -79,6 +79,11 @@ namespace hui {
 
 		return curr;
 	}
+
+    template<typename T, typename... Args>
+    void* construct(void* ptr, Args&&... args){
+        return ::new (reinterpret_cast<void*>(ptr)) T(hui::forward<Args>(args)...);
+    }
 };
 
 #endif
