@@ -15,7 +15,7 @@
                       --> [[size][cap][ref_count][............data...........]]
     but there is 2 nasty optimisations:
 
-    1) string single instance of null-string. cause every time you construct string, every time you move string, etc you do have an empty string. IN case you mallocing null string every time you use          it - you have like 20 nanosec delay. we dont want that(~). So gcc has global variable thats an empty string:
+    1) string single instance of null-string. cause every time you construct string, every time you move string, etc you do have an empty string. IN case you mallocing null string every time you use it - you have like 20 nanosec delay. we dont want that(~). So gcc has global variable thats an empty string:
         [empty str 1] -----------
         [empty str 2] -----------
         [empty str 3] -----------
@@ -126,8 +126,6 @@ namespace hui{
         }
 
         basic_string& operator =(basic_string str){
-            if(this == &str)
-                return *this;
             swap_me(str);
             return *this;
         }

@@ -4,6 +4,9 @@
 #include <exception>
 
 namespace hui{
+
+    void terminate() __attribute__ ((__noreturn__));
+
     class exception
     {
     public:

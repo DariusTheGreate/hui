@@ -84,6 +84,21 @@ namespace hui {
     void* construct(void* ptr, Args&&... args){
         return ::new (reinterpret_cast<void*>(ptr)) T(hui::forward<Args>(args)...);
     }
+
+    template<typename T>
+    void destroy(T* ptr){
+        ptr -> ~T();
+    }
+
+    template<typename T>
+    void deallocate(T* ptr){
+        delete ptr;
+    }
+
+    template<typename T>
+    void deallocate_n(T* ptr){
+        delete[] ptr;
+    }
 };
 
 #endif

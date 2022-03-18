@@ -32,8 +32,8 @@ namespace hui{
 	public:
 		vector() = default;
 		~vector();
-		vector(const_reference v);
-		vector(r_reference v);
+		vector(const vector& v);
+		vector(vector&& v);
 		vector<T, Allocator>& operator =(const hui::vector<T, Allocator>& v);
 		vector<T, Allocator>& operator =(hui::vector<T, Allocator>&& v);
 
@@ -73,12 +73,12 @@ namespace hui{
 	}
 
 	template<typename T, typename Allocator>
-	vector<T, Allocator>::vector(const_reference v) : size(v.size), cap(v.cap), buffer(alloc.allocate(v.cap)){
+	vector<T, Allocator>::vector(const vector& v) : size(v.size), cap(v.cap), buffer(alloc.allocate(v.cap)){
 		hui::uninitialized_copy_n(v.buffer, v.size, buffer);
 	}
 
 	template<typename T, typename Allocator>
-	vector<T, Allocator>::vector(r_reference v) : size(v.size), cap(v.cap), buffer(v.buffer){
+	vector<T, Allocator>::vector(vector&& v) : size(v.size), cap(v.cap), buffer(v.buffer){
 		v.buffer = nullptr;
 		v.cap = 0;
 		v.size = 0;

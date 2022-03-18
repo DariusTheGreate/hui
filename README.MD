@@ -6,6 +6,8 @@ Planned to write:
 - [x] allocator_traits, iterator_traits
 - [x] vector
 - [x] string
+- [x] unique_ptr
+- [x] exceptions
 - [ ] variant
 - [ ] shared_ptr
 - [ ] lockFree API
