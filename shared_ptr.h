@@ -86,7 +86,7 @@ namespace hui{
         ref_counter_t(value_type v, Allocator&& al, Deleter&& deler) : ref_counter(1),  m_ptr(v), m_allocator(al), m_deleter(deler) { }
         
         void free_value() {
-            m_deleter(m_ptr);
+            m_ptr.~value_type();
             m_ptr = nullptr;
         }
 
@@ -181,18 +181,18 @@ namespace hui{
 
     private:
         template<typename U, typename Allocator_, typename Deleter_>
-        void alloc_myself(U val, Allocator_&& alloc, Deleter_ deler) noexcept { 
+        void alloc_myself(U val, Allocator_ alloc, Deleter_ deler) noexcept { 
             try{
                 void* count_p = alloc.allocate(sizeof(ref_counter_type_t<U, Allocator_, Deleter_>));
                 if(!count_p)
                     throw hui::bad_alloc();
-                m_counter = (ref_counter_type_t<U, Allocator_, Deleter_>*)hui::construct<ref_counter_type_t<U, Allocator_, Deleter_>>(count_p, val, alloc, hui::move(deler));
+                m_counter = (ref_counter_type_t<U, Allocator_, Deleter_>*)hui::construct<ref_counter_type_t<U, Allocator_, Deleter_>>(count_p, val, hui::move(alloc), hui::move(deler));
                 //static_cast<ref_counter_type_t<U, Allocator_, Deleter_>*>(m_counter);
                 m_p = reinterpret_cast<value_type*>(val); 
                 
             }catch(...){
                 deler(val);
-                throw;
+                //throw;
             }
         }
     private:

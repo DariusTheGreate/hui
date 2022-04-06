@@ -18,7 +18,7 @@ namespace hui {
             using size_type = typename Alloc::size_type;
             using pointer = typename Alloc::pointer;
             using reference = typename Alloc::reference;
-            using r_reference = typename Alloc::r_reference;
+            //using r_reference = typename Alloc::r_reference;
             using const_pointer = typename Alloc::const_pointer;
             using const_void_pointer = const void*;
             using difference_type = typename Alloc::difference_type; 

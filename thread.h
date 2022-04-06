@@ -2,8 +2,9 @@
 #include <mutex>
 #include <pthread.h>
 
-namespace hui{
+#include "utility.h"
 
+namespace hui{
     std::thread tr;
     using huitphread = pthread_t;
 
@@ -29,7 +30,32 @@ namespace hui{
     
 
     public:
+        thread() = default;
+
+        template<typename Functor, typename... Args>
+            class caller_wrapper{
+                Functor f;
+                caller_wrapper(Functor&& f_, Args&&... args) : f(f_) {
+                    call((void*)args...);
+                }
+                
+                void* call(void* args){
+                    return nullptr;
+                }
+        };
+
+        template<class Functor, class... Args>
+        explicit thread(Functor&& f, Args&&... args){
+           // int status = pthread_create(&m_id.thread_id, NULL, hui::forward<Functor&&>(f), hui::forward<Args&&>(args)...);   
+        }
+        
+        void join(void** attr = nullptr){
+            int status = pthread_join(m_id.thread_id, attr);
+        }
+
     private:
+        id m_id;
+
     };
 };
 

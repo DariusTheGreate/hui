@@ -1,5 +1,3 @@
-#include <iostream>
-#include "vector.h"
 #include "allocator.h"
 #include "exception.h"
 #include "string.h"
@@ -8,19 +6,28 @@
 #include "deleters.h"
 #include "lf_queue.h"
 #include "deleters.h"
+#include "vector.h"
+#include "thread.h"
 
+#include <memory>
+#include <vector>
+#include <string>
+
+//-fsanitize=address throws error:(
 template<typename T, typename = hui::enable_if_t<hui::is_same_v<T, int>>>
 void test_vector_and_sfinae(const T&) 
 {
-	hui::vector<hui::string> v;
-	for (int i = 0; i < 100; ++i) {
-		v.emplace_back((char*)"|");
+	hui::vector<hui::standart_allocated_string> v;
+    v.emplace_back(hui::standart_allocated_string((char*)"|"));
+	
+    for (int i = 1; i < 100; ++i) {
+		v.emplace_back(v.at(i-1));
 	}
 
-    hui::vector<hui::string> v2 = hui::move(v);
+    auto v2 = hui::move(v);
     
-    for (auto& i : v)
-	    std::cout << i.c_str();//empty
+    //for (auto& i : v)
+	//    i.print_status();
 }
 
 void test_vector_and_sfinae(...) {
@@ -94,11 +101,28 @@ void test_lf_queue(){
     q.push("asdasdas");
 }
 
+void* simple_worker(int a, int b){
+    hui::string str("asdasd");
+    std::cout << str.c_str();
+    return nullptr;
+}
+
+void test_thread(){
+    hui::thread tr(simple_worker, nullptr);
+    tr.join();
+}
+
+enum E{
+    first, 
+    second
+};
+
 int main()
 {
-    //test_unique_ptr();
+    //test_thread();
+    test_unique_ptr();
     //test_shred_ptr();
-    //test_string();
+    test_string();
     //test_exceptions();
     //test_vector_and_sfinae(9);
     std::cout << "exit\n";

@@ -5,6 +5,7 @@
 #include "utility.h"
 #include <iostream>
 
+#include <memory>
 #include <string>
 
 /*
@@ -95,6 +96,10 @@ namespace hui{
             hui::uninitialized_copy_n(data, m_str_len, m_p);
         }
 
+        basic_string(const char* data) : basic_string((char*)data) {
+
+        }
+
         basic_string(const basic_string& str2){
             //COW?
             
@@ -156,7 +161,7 @@ namespace hui{
         //std::string str;        
     private:
         constexpr static int get_buffer_sso_size(){
-            return 15/sizeof(T);
+            return 15/sizeof(value_type);
         }
         
         union {
@@ -170,7 +175,7 @@ namespace hui{
     };
 
     using string = hui::basic_string<char>;
-
+    using standart_allocated_string = hui::basic_string<char, std::allocator<char>>;
 
 };
 

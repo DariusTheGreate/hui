@@ -2,7 +2,10 @@
 #define _ALLOCATOR_
 
 #include <limits>//make own
+#include <memory>
 #include "utility.h"
+
+//std::allocator<int> a;
 
 namespace hui{
 

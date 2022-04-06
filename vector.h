@@ -2,6 +2,7 @@
 #define _VECTOR_
 
 #include <iostream>
+#include "huidef.h"
 #include "reverse_iterator.h"
 #include "allocator.h"
 #include "memory.h"
@@ -131,6 +132,15 @@ namespace hui{
 		alloc.construct(buffer + size, hui::forward<Args>(val)...);
 		size++;
 	}
+
+    /*template<>
+    class vector<bool>{
+    private:
+        uint8_t* arr;
+        size_t sz;
+        size_t cap;
+    public:
+    };*/
 };
 
 #endif

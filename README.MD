@@ -8,6 +8,9 @@ Planned to write:
 - [x] string
 - [x] unique_ptr
 - [x] exceptions
+- [ ] any
+- [ ] listener pattern
+- [ ] cookie(memento) pattern
 - [ ] variant
 - [ ] shared_ptr
 - [ ] lockFree API
