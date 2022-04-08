@@ -6,15 +6,86 @@
 #include <type_traits>
 #include <utility>
 
-template<typename T>
-struct rb_tree_node{
-    rb_tree_node* right;
-    rb_tree_node* left;
-    rb_tree_node* parent;
+struct rb_tree_node_base{
+    rb_tree_node_base* right;
+    rb_tree_node_base* left;
+    rb_tree_node_base* parent;
     char color;//would be cool to store just a bit
-    T val;
-
 };
+
+template<typename T>
+struct rb_tree_node : rb_tree_node_base{
+    T val;
+};
+
+//TODO:FIX ODR
+
+rb_tree_node_base* rb_tree_increment(rb_tree_node_base* node){
+    if(node -> right != nullptr){
+        node = node -> right;
+        while(node -> left != nullptr)
+            node = node -> left;
+    }
+    else{
+        rb_tree_node_base* parent = node -> parent;
+        while(parent == node -> right){
+            node = parent;
+            parent = node -> parent;
+        }
+        
+        if(node -> right != parent)
+            node = parent;
+    }
+    return node;
+}
+
+//TODO:finish it
+rb_tree_node_base* rb_tree_decrement(rb_tree_node_base* node){
+    return nullptr;
+}
+
+//TODO:finish it
+rb_tree_node_base* rb_tree_rotate_left(rb_tree_node_base* node){
+    return nullptr;
+}
+
+//TODO:finish it
+rb_tree_node_base* rb_tree_rotate_right(rb_tree_node_base* node){
+    return nullptr;
+}
+
+//TODO:finish it
+void rb_tree_insert(rb_tree_node_base* node, rb_tree_node_base* parent, rb_tree_node_base* anchor, char side){
+    return;
+}
+
+//TODO:finish it
+void rb_tree_erase(rb_tree_node_base* node, rb_tree_node_base* anchor){
+    return;
+}
+
+size_t get_black_count(rb_tree_node_base* top, rb_tree_node_base* bottom){
+    size_t count = 0;
+    for(; bottom; bottom = bottom -> parent){
+        if(bottom -> color == 'b')
+            ++count;
+        if(bottom == top)
+            break;
+    }
+    return count;
+}
+
+rb_tree_node_base* get_min(rb_tree_node_base* node){
+    while(node -> left)
+        node = node -> left;
+    return node;
+}
+
+rb_tree_node_base* get_max(rb_tree_node_base* node){
+    while(node -> right)
+        node = node -> right;
+    return node;
+}
 
 template<typename T, typename Ptr, typename Ref>
 struct rb_tree_iterator{
@@ -111,7 +182,7 @@ protected:
     }
 };
 
-template<typename Key, typename Pair, typename Comparer, typename RBtree >
+template<typename Key, typename Pair, typename Comparer>
 struct rb_tree_base : public rb_tree_compare<Comparer> {
     using rb_tree_compare<Comparer>::get_compare;
     using rb_tree_compare<Comparer>::compare;
@@ -120,7 +191,10 @@ struct rb_tree_base : public rb_tree_compare<Comparer> {
     rb_tree_base(const Comparer& comp) : rb_tree_compare<Comparer>(comp) {}
 };
 
-
+template<typename Key, typename Value, typename Comparer, typename Allocator>
+struct rb_tree : rb_tree_base<Key, Value, Comparer>{
+    
+};
 
 #endif
 
