@@ -96,6 +96,13 @@ namespace hui{
     public:
         using type = decay_dispatch<remove_type>;//here should be decaying in case its 
     };
+    
+    //TODO: test it?
+    template<hui::size_t Len, hui::size_t Alignment>
+    class aligned_buffer
+    {
+        alignas(Alignment) unsigned char data[Len];
+    };
    
 
 };

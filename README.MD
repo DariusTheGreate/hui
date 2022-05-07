@@ -5,12 +5,14 @@ Planned to write:
 - [x] some iterator/allocator stuff
 - [x] allocator_traits, iterator_traits
 - [x] vector
+- [ ] queue
+- [ ] deque
+- [ ] stack 
 - [x] string
 - [x] unique_ptr
 - [x] exceptions
+- [ ] unordered_map, map
 - [ ] any
-- [ ] listener pattern
-- [ ] cookie(memento) pattern
 - [ ] variant
 - [ ] shared_ptr
 - [ ] lockFree API

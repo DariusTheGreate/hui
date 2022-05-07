@@ -8,6 +8,9 @@
 #include "deleters.h"
 #include "vector.h"
 #include "thread.h"
+#include "any.h"
+
+
 
 #include <memory>
 #include <vector>
@@ -117,12 +120,20 @@ enum E{
     second
 };
 
+//NOTE: heap dosnt work, cause template dispathing works incorrect, due to size/align bug, also leaks, but looks like it working (?)
+void test_any(){
+    hui::any a = 6; 
+    std::cout << "in test: " << a.store << " " << *((int*)&(a.store->storage)) << "\n";
+}
+
 int main()
 {
+    test_any();
+    //std::mutex m;
     //test_thread();
-    test_unique_ptr();
+    //test_unique_ptr();
     //test_shred_ptr();
-    test_string();
+    //test_string();
     //test_exceptions();
     //test_vector_and_sfinae(9);
     std::cout << "exit\n";
