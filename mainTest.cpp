@@ -120,10 +120,25 @@ enum E{
     second
 };
 
-//NOTE: heap dosnt work, cause template dispathing works incorrect, due to size/align bug, also leaks, but looks like it working (?)
+struct Data{
+        int a;
+        int b;
+        int c;
+        int o;
+        hui::string p; 
+    Data() : a(1) {}
+    Data(Data&&) {}
+};
+
+void operator <<(const std::ostream&, const Data& d){
+    std::cout << d.a << " " << d.b << " " << d.c << "\n";
+}
+
 void test_any(){
-    hui::any a = 6; 
-    std::cout << "in test: " << a.store << " " << *((int*)&(a.store->storage)) << "\n";
+    Data d;
+
+    hui::any stack_any = 6;//will be allocated on stack 
+    hui::any heap_any = d;// will be allocated in heap 
 }
 
 int main()

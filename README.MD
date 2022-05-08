@@ -16,6 +16,7 @@ Planned to write:
 - [ ] variant
 - [ ] shared_ptr
 - [ ] lockFree API
+- [ ] barrier
 
 You can clone this repo and add to ypur project any file you want. Then you need to access hui, like this:
 ```

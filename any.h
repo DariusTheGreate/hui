@@ -8,9 +8,13 @@
 #include "utility.h"
 #include "memory.h"
 
+//#define ANY_IMPLEMENTATION_USING_VIRTUAL_FUNCTIONS_
+#define ANY_HARD_STD_KIND_IMPLEMENTATION_ 
+
 // https://www.fluentcpp.com/2021/02/05/how-stdany-works/
 namespace hui{
-    
+
+#ifdef ANY_HARD_STD_KIND_IMPLEMENTATION_    
     class any{
     public:
       
@@ -20,11 +24,17 @@ namespace hui{
            store = dispathAndConstructStorage(u_in);
        }
 
+       ~any(){
+           handle -> deleter(store);
+           delete store;
+           delete handle;
+       }
+
     private:
         union Storage{
             void* data;
-            using stack_storage_type = std::aligned_storage<sizeof(void*), alignof(void*)>; 
-            stack_storage_type storage; 
+            using stack_storage_type = std::aligned_storage<2 * sizeof(void*), alignof(void*)>; 
+            char storage[16]; 
                      
             // add checks for copying?
             Storage() = default;
@@ -34,7 +44,8 @@ namespace hui{
         
         struct Handler
         {
-            //oid deleter(void* data);
+           //virtual void deleter(Storage* data) {};
+            void (*deleter)(Storage*);           
             //template<typename T>
             //void create(void* data, T&& val);
         }; 
@@ -48,33 +59,32 @@ namespace hui{
         class MemoryHandler;
 
         template<typename T>
-        struct MemoryHandler<T, false> : public Handler{
-            static void deleter(void* data){
-                //static_cast<T*>(data) -> ~T(); 
-                hui::destroy(static_cast<T*>(data));
+        struct MemoryHandler<T, true> : public Handler{
+            static void deleter(Storage* store) {
+                delete static_cast<T*>(store -> data);
+                std::cout << "deleted in heap version\n";
             } 
             
             template<typename Pr>
-            static void create(void* data, Pr&& val){
-                data = new (data) T(hui::forward<Pr>(val)); 
-                //hui::construct(data, hui::forward<Pr>(val));
-
-                std::cout << "in create: " << val << " " << *((int*)data) << "\n";
+            static void create(Storage* store, Pr&& val){
+                store -> data = new T(hui::forward<Pr>(val)); 
+                std::cout << "created in heap version\n";
             } 
         };
 
         template<typename T>
-        struct MemoryHandler<T,true>  : public Handler{
-            static void deleter(void* data){
-                delete static_cast<T*>(data);
+        struct MemoryHandler<T,false>  : public Handler{
+            static void deleter(Storage* store) {
+                //hui::destroy(static_cast<T*>(store -> storage));
+                std::cout << "deleted in stack version\n";
             }  
 
             template<typename Pr>
-            static void create(void* data, Pr&& val)
+            static void create(Storage* store, Pr&& val)
             {
                 //char* buffer = hui::allocate_n<char>(1);  
-                data = new (data) T(hui::forward<Pr>(val));
-                std::cout << "in create: " << val << " " << *((int*)data) << "\n";
+                new (&(store -> storage)) T(hui::forward<Pr>(val));
+                std::cout << "created in stack version\n";
             }
         };
         
@@ -84,54 +94,95 @@ namespace hui{
         using checkIfFits = std::integral_constant<bool, fits>;
         
         template<typename T>
-        using Manager = std::conditional_t<checkIfFits<T>::value, MemoryHandler<T, 0>, MemoryHandler<T,1>>;
+        using checkIfNothrowMoveConstructible = std::integral_constant<bool, (std::is_nothrow_move_constructible<T>::value)>;
+        
+        //TODO: understand why aligment/sizeof dispathing doesnt work
+        template<typename T>
+        using Manager = std::conditional_t<!checkIfNothrowMoveConstructible<T>::value, MemoryHandler<T, 1>, MemoryHandler<T,0>>;
+        //using Manager = std::conditional_t<checkIfFits<T>::value, MemoryHandler<T, 0>, MemoryHandler<T,1>>;
+        
+        template<typename T>
+        constexpr auto castHandleToManager(){
+            return static_cast<Manager<T>*>(handle);
+        }
         
         template<typename T> 
         auto dispathAndConstructHandler()
         {
-            using ManagerType = Manager<T>;
-            //Handler h = {
-            //    ManagerType::deleter,
-            //    ManagerType::create
-            //};
-            ManagerType* h = new ManagerType();
-            return h;
+            //using ManagerType = Manager<T>;
+            //if constexpr(hui::is_same<ManagerType, MemoryHandler<T, 0>>::val)
+            //    std::cout << "heap version in handler dispathing\n";
+            //ManagerType* h = new ManagerType();
+            return new Handler();
+            //return h;
         } 
-        
 
         template<typename T>
         Storage* dispathAndConstructStorage(T& val)//need to make ot sfinae in order to pass by T&&
         {
             Storage* store = new Storage();
-            if constexpr(hui::is_same_v<Manager<T>, MemoryHandler<T, 0>>){
+            if constexpr(hui::is_same_v<Manager<T>, MemoryHandler<T, 1>>){
                 std::cout << "heap stprage\n";
-                //store->data = new T(hui::move(val));  
-                static_cast<Manager<T>*>(handle) -> create(&store -> data, hui::move(val));
+                //static_cast<Manager<T>*>(handle) -> create(store, hui::move(val));
+                //castHandleToManager<T>() -> create(store, hui::move(val));
+                MemoryHandler<T, 1>::create(store, std::move(val)); 
+                handle -> deleter = MemoryHandler<T, 1>::deleter;
             }
             else {
                 std::cout << "stack storage\n";
-                static_cast<Manager<T>*>(handle) -> create(&store -> storage, hui::move(val));
-                //new  (&store->storage) T(hui::forward<T>(val));
+                //static_cast<Manager<T>*>(handle) -> create(store, hui::move(val));
+                //castHandleToManager<T>() -> create(store, hui::move(val));
+                MemoryHandler<T, 0>::create(store, std::move(val)); 
+                handle -> deleter = MemoryHandler<T, 0>::deleter;
             }
             return store;
         }
- 
-        /*template<typename T>
-        Storage* dispathAndConstructStorage(T&& val)
-        {
-           Storage* store = new Storage(); 
-
-           new (store->storage) T(hui::forward<T>(val));
-           return store;
-        }*/
 
     public:
         Storage* store;
         Handler* handle;
     };
 
-};
+#endif
 
+
+#ifdef ANY_IMPLEMENTATION_USING_VIRTUAL_FUNCTIONS_
+
+    class any{
+
+        struct StorageBase{
+            virtual ~StorageBase() = default; 
+            virtual StorageBase* get_copy(){ return new StorageBase();} 
+        };
+        
+        template<typename T>
+        struct Storage : StorageBase {
+            T val;
+
+            Storage(T&& val) : val(hui::forward<T>(val)){
+            }
+
+            StorageBase* get_copy() override {
+                return new Storage<T>(val);
+            }
+
+            ~Storage() = default;
+        };
+
+        StorageBase* maintainer; 
+    public:
+        template<typename T>
+        any(T&& val) : maintainer(new Storage<T>(hui::forward<T>(val))) {}
+        ~any() { delete maintainer; }
+
+        auto get_value(){
+            //TODO: how to get value from StorageBase<X> if i dont know X at this point?
+        }
+    };
+
+#endif
+
+};
 #endif
 
 
