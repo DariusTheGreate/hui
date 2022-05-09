@@ -17,11 +17,19 @@ namespace hui{
 #ifdef ANY_HARD_STD_KIND_IMPLEMENTATION_    
     class any{
     public:
-      
-       template<typename U> 
+       template<typename U>
        any(U&& u_in){
            handle = dispathAndConstructHandler<U>();
            store = dispathAndConstructStorage(u_in);
+       }
+
+       //TODO(fix): being hidded by templated constructor. Use some sfinae shit to fix it;
+       any(const any& a_in) : store(nullptr), handle(a_in.handle) { 
+           handle->copier(a_in.store, store);
+       }
+
+       auto get_data(){
+           return handle -> acess(strore);
        }
 
        ~any(){
@@ -33,8 +41,8 @@ namespace hui{
     private:
         union Storage{
             void* data;
-            using stack_storage_type = std::aligned_storage<2 * sizeof(void*), alignof(void*)>; 
-            char storage[16]; 
+            using stack_storage_type = std::aligned_storage<sizeof(data), alignof(void*)>::type; 
+            stack_storage_type storage; 
                      
             // add checks for copying?
             Storage() = default;
@@ -46,6 +54,13 @@ namespace hui{
         {
            //virtual void deleter(Storage* data) {};
             void (*deleter)(Storage*);           
+            void (*copier)(Storage*, Storage*);
+            auto (*acess)(Storage*);
+            
+            Handler() = default;
+
+            Handler(const Handler& handle_in) : deleter(handle_in.deleter), copier(handle_in.copier), acess(handle_in.acess){
+            }
             //template<typename T>
             //void create(void* data, T&& val);
         }; 
@@ -57,26 +72,36 @@ namespace hui{
         //3 -> shared_ptr?
         template<typename T, bool type>
         class MemoryHandler;
-
+        
+        //heap version
         template<typename T>
-        struct MemoryHandler<T, true> : public Handler{
+        struct MemoryHandler<T, true>{
             static void deleter(Storage* store) {
                 delete static_cast<T*>(store -> data);
-                std::cout << "deleted in heap version\n";
+                //std::cout << "deleted in heap version\n";
             } 
             
             template<typename Pr>
             static void create(Storage* store, Pr&& val){
                 store -> data = new T(hui::forward<Pr>(val)); 
-                std::cout << "created in heap version\n";
+                //std::cout << "created in heap version\n";
             } 
+
+            static void copy(Storage* from, Storage* to){
+               *static_cast<T*>(to -> data) = *static_cast<T*>(to -> data);
+            }
+
+            static auto acess(Storage* store){
+                return static_cast<T*>(store -> data);
+            }
         };
 
+        //stack version
         template<typename T>
-        struct MemoryHandler<T,false>  : public Handler{
+        struct MemoryHandler<T,false> {
             static void deleter(Storage* store) {
-                //hui::destroy(static_cast<T*>(store -> storage));
-                std::cout << "deleted in stack version\n";
+                hui::destroy(reinterpret_cast<T*>(&(store -> storage)));
+                //std::cout << "deleted in stack version\n";
             }  
 
             template<typename Pr>
@@ -84,10 +109,22 @@ namespace hui{
             {
                 //char* buffer = hui::allocate_n<char>(1);  
                 new (&(store -> storage)) T(hui::forward<Pr>(val));
-                std::cout << "created in stack version\n";
+                //std::cout << "created in stack version\n";
+            }
+            
+            static void copy(Storage* from, Storage* to){
             }
         };
         
+        template<typename _Tp, typename _Safe = std::is_nothrow_move_constructible<_Tp>,
+           bool _Fits = (sizeof(_Tp) <= sizeof(Storage))
+                && (alignof(_Tp) <= alignof(Storage))>
+        using _Internal = std::integral_constant<bool, _Safe::value && _Fits>;
+
+        template<typename T>
+        using _Manager = std::conditional_t<_Internal<T>::value, MemoryHandler<T, 0>, MemoryHandler<T,1>>;
+
+
         template<typename T, bool fits = !(std::is_nothrow_move_constructible<T>::value 
                 && sizeof(T) <= sizeof(Storage::stack_storage_type) 
                 && alignof(T) <= alignof(Storage::stack_storage_type))> 
@@ -98,10 +135,11 @@ namespace hui{
         
         //TODO: understand why aligment/sizeof dispathing doesnt work
         template<typename T>
-        using Manager = std::conditional_t<!checkIfNothrowMoveConstructible<T>::value, MemoryHandler<T, 1>, MemoryHandler<T,0>>;
+        //using Manager = std::conditional_t<!checkIfNothrowMoveConstructible<T>::value, MemoryHandler<T, 1>, MemoryHandler<T,0>>;
         //using Manager = std::conditional_t<checkIfFits<T>::value, MemoryHandler<T, 0>, MemoryHandler<T,1>>;
-        
-        template<typename T>
+        using Manager = _Manager<T>;
+ 
+                template<typename T>
         constexpr auto castHandleToManager(){
             return static_cast<Manager<T>*>(handle);
         }
@@ -122,14 +160,14 @@ namespace hui{
         {
             Storage* store = new Storage();
             if constexpr(hui::is_same_v<Manager<T>, MemoryHandler<T, 1>>){
-                std::cout << "heap stprage\n";
+                //std::cout << "heap stprage\n";
                 //static_cast<Manager<T>*>(handle) -> create(store, hui::move(val));
                 //castHandleToManager<T>() -> create(store, hui::move(val));
                 MemoryHandler<T, 1>::create(store, std::move(val)); 
                 handle -> deleter = MemoryHandler<T, 1>::deleter;
             }
             else {
-                std::cout << "stack storage\n";
+                //std::cout << "stack storage\n";
                 //static_cast<Manager<T>*>(handle) -> create(store, hui::move(val));
                 //castHandleToManager<T>() -> create(store, hui::move(val));
                 MemoryHandler<T, 0>::create(store, std::move(val)); 
