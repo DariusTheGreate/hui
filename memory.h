@@ -5,7 +5,7 @@
 #include "my_traits.h"
 #include "utility.h"
 #include "exception.h"
-
+#include "allocator.h"
 #include <iostream>
 
 namespace hui {
@@ -98,6 +98,19 @@ namespace hui {
     template<typename T>
     void deallocate_n(T* ptr){
         delete[] ptr;
+    }
+   
+    template<typename T, typename Allocator = hui::Allocator<T>> 
+    T* allocate_n(hui::size_t n)
+    {
+        return new T[n];//make it use allcoator
+    } 
+
+    template<typename T, typename... Args>
+    T* unitialized_create_n(hui::size_t n, Args&&... args)
+    {
+        char* buffer = allocate_n<char>(n); 
+        //then unitialized_forward_n?         
     }
 };
 
