@@ -183,7 +183,7 @@ namespace hui{
         template<typename U, typename Allocator_, typename Deleter_>
         void alloc_myself(U val, Allocator_ alloc, Deleter_ deler) noexcept { 
             try{
-                void* count_p = alloc.allocate(sizeof(ref_counter_type_t<U, Allocator_, Deleter_>));
+                void* count_p = alloc.allocate(sizeof(ref_counter_type_t<U, Allocator_, Deleter_>));// TODO: alignment?
                 if(!count_p)
                     throw hui::bad_alloc();
                 m_counter = (ref_counter_type_t<U, Allocator_, Deleter_>*)hui::construct<ref_counter_type_t<U, Allocator_, Deleter_>>(count_p, val, hui::move(alloc), hui::move(deler));
@@ -201,10 +201,49 @@ namespace hui{
     };
 
     //make_shared
+    //the point is to avoid this situation(and simmilar)
+    //Buffer* bp = new Buffer();
+    //hui::shared_ptr<Buffer> = bp;
+    //hui::shared_ptr<Buffer> = bp;
+    // ...
+    // double free -> UB -> most likely segfault
+    // then:
+    // auto sbp = make_shared<Buffer>
+   
+    template<typename T, typename... Args>
+    hui::shared_ptr<T> make_shared(Args... args){
+       //use alloc_myself here 
+    }
 
 
     //weak_ptr
+    // accurse when you have cyclic pointers like this:
+    // for example sahred ptr in Node of a tree
+    //  
+    // So weak_ptr dosnt have any privilage to control object
+    // for example you can make pointers in Node weak_ptr
+    // methods of weak_ptr:
+    //      expired -> checks if object under it is dead
+    //      lock -> returns shared_ptr to underlien
+    //      use_count -> checks how many points to
+    //      you can create weak_ptr only from shared_ptr or weak_ptr
+    //
+    // internally looks same 
+    //
+    // there  is a problem in realization of expired(). See you need to check if counter is 0, but if it is 0 shared_ptr destructor destroys it(=> segFault). So one possible solution is to store 2 counters, for weaks and shared
+    // go with this approach?
+    //
     
+    template<typename T>
+    class weak_ptr{
+    public:
+        using this_type = shared_ptr<T>;
+        using value_type = T;
+    private:
+        
+
+    };
+
 };
 
 #endif
